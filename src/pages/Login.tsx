@@ -103,7 +103,8 @@ function Login() {
           <div className="flex flex-col items-center mb-8">
             <FixedLogo />
             <p className="text-cyan-600 font-medium">Sistema Oficial</p>
-
+            
+            {/* Ícone de informações */}
             <button
               type="button"
               onClick={() => setShowInfoDialog(true)}
