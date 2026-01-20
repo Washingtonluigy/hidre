@@ -100,17 +100,16 @@ function Login() {
     >
       <div className="max-w-md w-full mx-4">
         <div className="bg-white bg-opacity-95 rounded-2xl shadow-xl p-8 backdrop-blur-sm">
-          <div className="flex flex-col items-center mb-6">
+          <div className="flex flex-col items-center mb-8">
             <FixedLogo />
-            <h1 className="text-2xl font-bold text-gray-800 mb-1">Sistema Oficial</h1>
-            <p className="text-sm text-gray-600 mb-4">Gestão Empresarial</p>
+            <p className="text-cyan-600 font-medium">Sistema Oficial</p>
 
             <button
               type="button"
               onClick={() => setShowInfoDialog(true)}
-              className="inline-flex items-center px-4 py-2 text-sm text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors border border-cyan-200"
+              className="mt-3 flex items-center text-sm text-cyan-600 hover:text-cyan-800 transition-colors"
             >
-              <HelpCircle className="h-4 w-4 mr-2" />
+              <HelpCircle className="h-4 w-4 mr-1" />
               Informações de Acesso
             </button>
           </div>
