@@ -33,6 +33,14 @@ export function Calendar({ vendorId, onEventSelect }: CalendarProps) {
   useEffect(() => {
     // Sync visits with Supabase when component mounts
     syncWithSupabase();
+
+    // Auto-refresh visits every 5 seconds
+    const intervalId = setInterval(() => {
+      syncWithSupabase();
+    }, 5000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
   }, [syncWithSupabase]);
 
   // Filter visits based on vendorId if provided, otherwise use all visits

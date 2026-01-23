@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Switch from '@radix-ui/react-switch';
 import { X, MapPin } from 'lucide-react';
@@ -16,29 +16,67 @@ interface ClientDialogProps {
 
 export function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) {
   const { profile } = useAuth();
-  const [name, setName] = useState(client?.name || '');
-  const [email, setEmail] = useState(client?.email || '');
-  const [phone, setPhone] = useState(client?.phone || '');
-  
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+
   // Expanded address fields
-  const [street, setStreet] = useState(client?.address?.split(',')[0]?.trim() || '');
-  const [number, setNumber] = useState(client?.address?.split(',')[1]?.trim() || '');
+  const [street, setStreet] = useState('');
+  const [number, setNumber] = useState('');
   const [hasNoNumber, setHasNoNumber] = useState(false);
-  const [neighborhood, setNeighborhood] = useState(client?.address?.split(',')[2]?.trim() || '');
-  const [city, setCity] = useState(client?.address?.split(',')[3]?.trim() || '');
-  const [state, setState] = useState(client?.address?.split(',')[4]?.trim() || '');
+  const [neighborhood, setNeighborhood] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
-  
-  const [documentType, setDocumentType] = useState<'CPF' | 'CNPJ'>(client?.documentType || 'CPF');
-  const [document, setDocument] = useState(client?.document || '');
-  const [needsScheduling, setNeedsScheduling] = useState(!!client?.scheduledDate);
-  const [scheduledDate, setScheduledDate] = useState<Date | null>(
-    client?.scheduledDate ? new Date(client.scheduledDate) : null
-  );
-  
+
+  const [documentType, setDocumentType] = useState<'CPF' | 'CNPJ'>('CPF');
+  const [document, setDocument] = useState('');
+  const [needsScheduling, setNeedsScheduling] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
+
   const addClient = useClientStore(state => state.addClient);
   const updateClient = useClientStore(state => state.updateClient);
   const addVisit = useVisitStore(state => state.addVisit);
+
+  // Update form fields when client prop changes
+  useEffect(() => {
+    if (client) {
+      setName(client.name || '');
+      setEmail(client.email || '');
+      setPhone(client.phone || '');
+
+      // Parse address
+      const addressParts = client.address?.split(',') || [];
+      setStreet(addressParts[0]?.trim() || '');
+      const numberPart = addressParts[1]?.trim() || '';
+      setNumber(numberPart === 'S/N' ? '' : numberPart);
+      setHasNoNumber(numberPart === 'S/N');
+      setNeighborhood(addressParts[2]?.trim() || '');
+      setCity(addressParts[3]?.trim() || '');
+      setState(addressParts[4]?.trim() || '');
+
+      setDocumentType(client.documentType || 'CPF');
+      setDocument(client.document || '');
+      setNeedsScheduling(!!client.scheduledDate);
+      setScheduledDate(client.scheduledDate ? new Date(client.scheduledDate) : null);
+    } else {
+      // Reset form when no client (new client)
+      setName('');
+      setEmail('');
+      setPhone('');
+      setStreet('');
+      setNumber('');
+      setHasNoNumber(false);
+      setNeighborhood('');
+      setCity('');
+      setState('');
+      setZipCode('');
+      setDocumentType('CPF');
+      setDocument('');
+      setNeedsScheduling(false);
+      setScheduledDate(null);
+    }
+  }, [client, open]);
 
   // CEP lookup function
   const handleZipCodeChange = async (value: string) => {
