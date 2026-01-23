@@ -135,7 +135,7 @@ export function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Combine address fields
     const fullAddress = [
       street,
@@ -144,7 +144,7 @@ export function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) 
       city,
       state
     ].filter(Boolean).join(', ');
-    
+
     const clientData = {
       name,
       email,
@@ -158,47 +158,70 @@ export function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) 
     try {
       if (client) {
         await updateClient(client.id, clientData);
-        
+
         // Se está editando e há agendamento, criar/atualizar visita
-        if (needsScheduling && scheduledDate && profile?.id) {
-          try {
-            await addVisit({
-              clientName: name,
-              clientId: client.id,
-              vendorId: profile.id,
-              scheduledDate: scheduledDate.toISOString(),
-              status: 'scheduled',
-              notes: `Visita agendada durante edição do cliente`,
-              location: fullAddress || 'Local a definir'
-            });
-          } catch (visitError) {
-            console.warn('Erro ao criar visita:', visitError);
+        if (needsScheduling && scheduledDate) {
+          if (!profile?.id) {
+            alert('Erro: Usuário não autenticado. Não foi possível agendar a visita.');
+            return;
           }
+
+          console.log('Criando visita ao editar cliente:', {
+            clientName: name,
+            clientId: client.id,
+            vendorId: profile.id,
+            scheduledDate: scheduledDate.toISOString(),
+            location: fullAddress || 'Local a definir'
+          });
+
+          await addVisit({
+            clientName: name,
+            clientId: client.id,
+            vendorId: profile.id,
+            scheduledDate: scheduledDate.toISOString(),
+            status: 'scheduled',
+            notes: `Visita agendada durante edição do cliente`,
+            location: fullAddress || 'Local a definir'
+          });
+
+          console.log('Visita criada com sucesso!');
         }
       } else {
         // Primeiro adiciona o cliente
         const newClientId = await addClient(clientData);
-        
+
         // Se há agendamento, criar visita automaticamente
-        if (needsScheduling && scheduledDate && profile?.id) {
-          try {
-            await addVisit({
-              clientName: name,
-              clientId: typeof newClientId === 'string' ? newClientId : undefined,
-              vendorId: profile.id,
-              scheduledDate: scheduledDate.toISOString(),
-              status: 'scheduled',
-              notes: `Visita agendada durante cadastro do cliente`,
-              location: fullAddress || 'Local a definir'
-            });
-          } catch (visitError) {
-            console.warn('Erro ao criar visita agendada:', visitError);
-            // Não falha o cadastro do cliente por causa da visita
+        if (needsScheduling && scheduledDate) {
+          if (!profile?.id) {
+            alert('Erro: Usuário não autenticado. Cliente foi salvo, mas não foi possível agendar a visita.');
+            onOpenChange(false);
+            return;
           }
+
+          console.log('Criando visita ao adicionar cliente:', {
+            clientName: name,
+            clientId: newClientId,
+            vendorId: profile.id,
+            scheduledDate: scheduledDate.toISOString(),
+            location: fullAddress || 'Local a definir'
+          });
+
+          await addVisit({
+            clientName: name,
+            clientId: typeof newClientId === 'string' ? newClientId : undefined,
+            vendorId: profile.id,
+            scheduledDate: scheduledDate.toISOString(),
+            status: 'scheduled',
+            notes: `Visita agendada durante cadastro do cliente`,
+            location: fullAddress || 'Local a definir'
+          });
+
+          console.log('Visita criada com sucesso!');
         }
       }
+
       onOpenChange(false);
-      
+
       // Reset form
       setName('');
       setEmail('');
@@ -215,8 +238,8 @@ export function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) 
       setNeedsScheduling(false);
       setScheduledDate(null);
     } catch (error) {
-      console.error('Error saving client:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erro ao salvar cliente';
+      console.error('Error saving client or visit:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao salvar';
       alert(errorMessage);
     }
   };

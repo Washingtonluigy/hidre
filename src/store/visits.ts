@@ -31,9 +31,9 @@ interface VisitStore {
   visits: Visit[];
   loading: boolean;
   error: string | null;
-  addVisit: (visit: Omit<Visit, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateVisit: (id: string, visit: Partial<Visit>) => void;
-  deleteVisit: (id: string) => void;
+  addVisit: (visit: Omit<Visit, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateVisit: (id: string, visit: Partial<Visit>) => Promise<void>;
+  deleteVisit: (id: string) => Promise<void>;
   getVisitsByVendor: (vendorId: string) => Visit[];
   getVisitsByStatus: (status: VisitStatus) => Visit[];
   getUpcomingVisits: (vendorId: string) => Visit[];
@@ -84,26 +84,35 @@ export const useVisitStore = create<VisitStore>()(
       addVisit: async (visit) => {
         set({ loading: true, error: null });
         try {
+          console.log('[VisitStore] Iniciando addVisit com dados:', visit);
+
+          const insertData = {
+            client_name: visit.clientName,
+            client_id: visit.clientId,
+            vendor_id: visit.vendorId,
+            scheduled_date: visit.scheduledDate,
+            status: visit.status,
+            notes: visit.notes,
+            follow_up_date: visit.followUpDate,
+            rejection_reason: visit.rejectionReason,
+            maintenance_type: visit.maintenanceType,
+            location: visit.location
+          };
+
+          console.log('[VisitStore] Dados para inserir no Supabase:', insertData);
+
           const { data, error } = await supabase
             .from('visits')
-            .insert([{
-              client_name: visit.clientName,
-              client_id: visit.clientId,
-              vendor_id: visit.vendorId,
-              scheduled_date: visit.scheduledDate,
-              status: visit.status,
-              notes: visit.notes,
-              follow_up_date: visit.followUpDate,
-              rejection_reason: visit.rejectionReason,
-              maintenance_type: visit.maintenanceType,
-              location: visit.location
-            }])
+            .insert([insertData])
             .select()
             .single();
 
           if (error) {
+            console.error('[VisitStore] Erro do Supabase:', error);
             throw error;
           }
+
+          console.log('[VisitStore] Visita inserida com sucesso:', data);
 
           const newVisit = {
             id: data.id,
@@ -120,15 +129,17 @@ export const useVisitStore = create<VisitStore>()(
             createdAt: data.created_at,
             updatedAt: data.updated_at
           };
-          
+
           set(state => ({
             visits: [newVisit, ...state.visits],
             loading: false
           }));
+
+          console.log('[VisitStore] Estado atualizado. Total de visitas:', get().visits.length);
         } catch (error) {
-          console.error('Error adding visit:', error);
-          set({ 
-            loading: false, 
+          console.error('[VisitStore] Erro ao adicionar visita:', error);
+          set({
+            loading: false,
             error: error instanceof Error ? error.message : 'Erro ao adicionar visita'
           });
           throw error;
