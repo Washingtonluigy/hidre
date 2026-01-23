@@ -1,19 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar } from '../../components/Calendar';
-import { VisitDialog } from '../../components/VisitDialog';
-import { Visit } from '../../store/visits';
 import { ArrowLeft } from 'lucide-react';
 
 function Schedule() {
   const navigate = useNavigate();
-  const [selectedVisit, setSelectedVisit] = useState<Visit | undefined>();
-  const [showVisitDialog, setShowVisitDialog] = useState(false);
-
-  const handleVisitSelect = (visit: Visit) => {
-    setSelectedVisit(visit);
-    setShowVisitDialog(true);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -30,14 +21,7 @@ function Schedule() {
           </div>
         </div>
 
-        <Calendar onEventSelect={handleVisitSelect} />
-
-        <VisitDialog
-          open={showVisitDialog}
-          onOpenChange={setShowVisitDialog}
-          visit={selectedVisit}
-          mode="view"
-        />
+        <Calendar />
       </div>
     </div>
   );
