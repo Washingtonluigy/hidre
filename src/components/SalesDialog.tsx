@@ -34,6 +34,7 @@ export function SalesDialog({ open, onOpenChange }: SalesDialogProps) {
   const [paymentMethod, setPaymentMethod] = useState('money');
   const [installments, setInstallments] = useState(1);
   const [discount, setDiscount] = useState(0);
+  const [discountType, setDiscountType] = useState<'value' | 'percentage'>('value');
   const [observations, setObservations] = useState('');
 
   const products = useProductStore(state => state.products);
@@ -87,7 +88,18 @@ export function SalesDialog({ open, onOpenChange }: SalesDialogProps) {
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
+    if (discountType === 'percentage') {
+      return subtotal - (subtotal * discount / 100);
+    }
     return subtotal - discount;
+  };
+
+  const getDiscountAmount = () => {
+    const subtotal = calculateSubtotal();
+    if (discountType === 'percentage') {
+      return subtotal * discount / 100;
+    }
+    return discount;
   };
 
   const handleFinalizeSale = async () => {
@@ -100,7 +112,7 @@ export function SalesDialog({ open, onOpenChange }: SalesDialogProps) {
       client: selectedClient,
       items: selectedItems,
       subtotal: calculateSubtotal(),
-      discount,
+      discount: getDiscountAmount(),
       total: calculateTotal(),
       paymentMethod,
       installments,
@@ -174,6 +186,7 @@ export function SalesDialog({ open, onOpenChange }: SalesDialogProps) {
     setPaymentMethod('money');
     setInstallments(1);
     setDiscount(0);
+    setDiscountType('value');
     setObservations('');
   };
 
@@ -472,19 +485,67 @@ export function SalesDialog({ open, onOpenChange }: SalesDialogProps) {
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Desconto (R$)
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Tipo de Desconto
                   </label>
-                  <input
-                    type="number"
-                    value={discount}
-                    onChange={(e) => setDiscount(Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    min="0"
-                    max={calculateSubtotal()}
-                    step="0.01"
-                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDiscountType('value');
+                        setDiscount(0);
+                      }}
+                      className={`px-4 py-3 rounded-lg border-2 font-medium transition-all ${
+                        discountType === 'value'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      Valor (R$)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDiscountType('percentage');
+                        setDiscount(0);
+                      }}
+                      className={`px-4 py-3 rounded-lg border-2 font-medium transition-all ${
+                        discountType === 'percentage'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      Porcentagem (%)
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {discountType === 'percentage' ? 'Desconto (%)' : 'Desconto (R$)'}
+                    </label>
+                    <input
+                      type="number"
+                      value={discount}
+                      onChange={(e) => setDiscount(Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                      min="0"
+                      max={discountType === 'percentage' ? 100 : calculateSubtotal()}
+                      step={discountType === 'percentage' ? '1' : '0.01'}
+                      placeholder={discountType === 'percentage' ? 'Ex: 10' : 'Ex: 50.00'}
+                    />
+                  </div>
+
+                  {discount > 0 && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">Desconto Aplicado:</span>
+                        <span className="text-lg font-bold text-green-600">
+                          - {formatCurrency(getDiscountAmount())}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -509,7 +570,7 @@ export function SalesDialog({ open, onOpenChange }: SalesDialogProps) {
                     {discount > 0 && (
                       <div className="flex justify-between text-red-600">
                         <span>Desconto:</span>
-                        <span>- {formatCurrency(discount)}</span>
+                        <span>- {formatCurrency(getDiscountAmount())}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-lg font-bold border-t pt-2">
