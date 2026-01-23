@@ -5,7 +5,7 @@ import { ptBR } from 'date-fns/locale';
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useVisitStore } from '../store/visits';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, Phone, MapPin, Package, CreditCard } from 'lucide-react';
+import { X, Phone, MapPin, Package, CreditCard, Calendar as CalendarIcon } from 'lucide-react';
 
 const locales = {
   'pt-BR': ptBR,
@@ -119,8 +119,8 @@ export function Calendar({ vendorId, onEventSelect }: CalendarProps) {
 
       <Dialog.Root open={showVisitDetails} onOpenChange={setShowVisitDetails}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-black/50" />
-          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 w-[90vw] max-w-[500px]">
+          <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[9999]" />
+          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 w-[90vw] max-w-[500px] z-[10000] shadow-2xl">
             <Dialog.Title className="text-xl font-semibold mb-4">
               Detalhes da Visita
             </Dialog.Title>
@@ -148,7 +148,7 @@ export function Calendar({ vendorId, onEventSelect }: CalendarProps) {
                 <div className="space-y-3">
                   <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
                     <div className="flex items-start text-gray-700">
-                      <Calendar className="w-5 h-5 mr-3 mt-0.5 text-blue-600 flex-shrink-0" />
+                      <CalendarIcon className="w-5 h-5 mr-3 mt-0.5 text-blue-600 flex-shrink-0" />
                       <div>
                         <p className="font-medium text-gray-900">Data e Hora</p>
                         <p className="text-sm text-gray-600">

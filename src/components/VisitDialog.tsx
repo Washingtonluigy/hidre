@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import DatePicker from 'react-datepicker';
@@ -25,18 +25,30 @@ const visitStatusOptions: { value: VisitStatus; label: string }[] = [
 
 export function VisitDialog({ open, onOpenChange, visit, mode = 'create' }: VisitDialogProps) {
   const { profile } = useAuth();
-  const [clientName, setClientName] = useState(visit?.clientName || '');
-  const [scheduledDate, setScheduledDate] = useState<Date | null>(
-    visit?.scheduledDate ? new Date(visit.scheduledDate) : null
-  );
-  const [status, setStatus] = useState<VisitStatus>(visit?.status || 'scheduled');
-  const [notes, setNotes] = useState(visit?.notes || '');
-  const [followUpDate, setFollowUpDate] = useState<Date | null>(
-    visit?.followUpDate ? new Date(visit.followUpDate) : null
-  );
-  const [rejectionReason, setRejectionReason] = useState(visit?.rejectionReason || '');
-  const [maintenanceType, setMaintenanceType] = useState(visit?.maintenanceType || '');
-  const [location, setLocation] = useState(visit?.location || '');
+  const [clientName, setClientName] = useState('');
+  const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
+  const [status, setStatus] = useState<VisitStatus>('scheduled');
+  const [notes, setNotes] = useState('');
+  const [followUpDate, setFollowUpDate] = useState<Date | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [maintenanceType, setMaintenanceType] = useState('');
+  const [location, setLocation] = useState('');
+
+  // Update form fields when visit prop changes
+  useEffect(() => {
+    if (visit) {
+      setClientName(visit.clientName || '');
+      setScheduledDate(visit.scheduledDate ? new Date(visit.scheduledDate) : null);
+      setStatus(visit.status || 'scheduled');
+      setNotes(visit.notes || '');
+      setFollowUpDate(visit.followUpDate ? new Date(visit.followUpDate) : null);
+      setRejectionReason(visit.rejectionReason || '');
+      setMaintenanceType(visit.maintenanceType || '');
+      setLocation(visit.location || '');
+    } else {
+      resetForm();
+    }
+  }, [visit, open]);
 
   const addVisit = useVisitStore(state => state.addVisit);
   const updateVisit = useVisitStore(state => state.updateVisit);
@@ -82,8 +94,8 @@ export function VisitDialog({ open, onOpenChange, visit, mode = 'create' }: Visi
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 w-[90vw] max-w-[500px] max-h-[85vh] overflow-y-auto">
+        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[9999]" />
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 w-[90vw] max-w-[500px] max-h-[85vh] overflow-y-auto z-[10000] shadow-2xl">
           <Dialog.Title className="text-xl font-semibold mb-4">
             {mode === 'create' ? 'Nova Visita' : mode === 'edit' ? 'Editar Visita' : 'Detalhes da Visita'}
           </Dialog.Title>
