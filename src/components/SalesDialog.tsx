@@ -9,6 +9,7 @@ import { ClientDialog } from './ClientDialog';
 import { generateSalePDF } from '../utils/salePdfGenerator';
 import { useAuth } from '../contexts/AuthContext';
 import { formatCurrency } from '../utils/currencyFormatter';
+import { useToast } from '../contexts/ToastContext';
 
 interface SalesDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ type SaleItem = {
 
 export function SalesDialog({ open, onOpenChange }: SalesDialogProps) {
   const { profile } = useAuth();
+  const { showToast } = useToast();
   const [currentStep, setCurrentStep] = useState<'items' | 'client' | 'payment' | 'summary'>('items');
   const [selectedItems, setSelectedItems] = useState<SaleItem[]>([]);
   const [selectedClient, setSelectedClient] = useState<any>(null);
@@ -104,7 +106,7 @@ export function SalesDialog({ open, onOpenChange }: SalesDialogProps) {
 
   const handleFinalizeSale = async () => {
     if (!selectedClient || selectedItems.length === 0) {
-      alert('Selecione um cliente e adicione itens à venda');
+      showToast('Selecione um cliente e adicione itens à venda', 'warning');
       return;
     }
 
@@ -125,20 +127,19 @@ export function SalesDialog({ open, onOpenChange }: SalesDialogProps) {
 
     try {
       await addSale(saleData);
-      // Don't show alert here, just close dialog
+      showToast('Venda realizada com sucesso!', 'success');
       resetSale();
       onOpenChange(false);
     } catch (error) {
       console.error('Error finalizing sale:', error);
-      // Show more specific error message
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao finalizar venda';
-      alert(`Erro ao finalizar venda: ${errorMessage}`);
+      showToast(`Erro ao finalizar venda: ${errorMessage}`, 'error');
     }
   };
 
   const handleGeneratePDF = async () => {
     if (!selectedClient || selectedItems.length === 0) {
-      alert('Selecione um cliente e adicione itens à venda');
+      showToast('Selecione um cliente e adicione itens à venda', 'warning');
       return;
     }
 
@@ -164,7 +165,7 @@ export function SalesDialog({ open, onOpenChange }: SalesDialogProps) {
 
     try {
       const pdfBlob = await generateSalePDF(saleData);
-      
+
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
       link.href = url;
@@ -173,9 +174,10 @@ export function SalesDialog({ open, onOpenChange }: SalesDialogProps) {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+      showToast('PDF gerado com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
-      alert('Erro ao gerar PDF da venda');
+      showToast('Erro ao gerar PDF da venda', 'error');
     }
   };
 

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVendorStore } from '../../store/vendors';
 import { VendorDialog } from '../../components/VendorDialog';
-import { ArrowLeft, Plus, Edit, Trash2, TrendingUp } from 'lucide-react';
+import { VendorMap } from '../../components/VendorMap';
+import { ArrowLeft, Plus, Edit, Trash2, TrendingUp, MapPin } from 'lucide-react';
 
 function Vendors() {
   const navigate = useNavigate();
@@ -54,6 +55,15 @@ function Vendors() {
             <Plus className="h-5 w-5 mr-2" />
             Novo Vendedor
           </button>
+        </div>
+
+        {/* Vendor Location Map */}
+        <div className="mb-8 bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <MapPin className="h-5 w-5 mr-2 text-blue-600" />
+            Localização dos Vendedores em Tempo Real
+          </h2>
+          <VendorMap />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
