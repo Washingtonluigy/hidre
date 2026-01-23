@@ -60,15 +60,17 @@ export function Calendar({ vendorId, onEventSelect }: CalendarProps) {
     }
   };
 
-  const eventStyleGetter = () => {
+  const eventStyleGetter = (event: any) => {
     return {
       style: {
-        backgroundColor: '#3b82f6', // Blue background  
+        backgroundColor: '#3b82f6',
         color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        fontSize: '12px',
-        padding: '2px 4px'
+        border: '2px solid #1e40af',
+        borderRadius: '6px',
+        fontSize: '13px',
+        fontWeight: '600',
+        padding: '4px 8px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }
     };
   };
@@ -117,41 +119,59 @@ export function Calendar({ vendorId, onEventSelect }: CalendarProps) {
 
             {selectedVisit && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b pb-4">
-                  <h3 className="text-lg font-medium">{selectedVisit.clientName}</h3>
-                  <span className={`px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800`}>
-                    {selectedVisit.status === 'scheduled' ? 'Agendada' :
-                     selectedVisit.status === 'in_negotiation' ? 'Em Negociação' :
-                     selectedVisit.status === 'completed_purchase' ? 'Venda Realizada' :
-                     selectedVisit.status === 'completed_no_purchase' ? 'Sem Venda' :
-                     selectedVisit.status}
-                  </span>
+                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-4 border-l-4 border-blue-500">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-gray-900">{selectedVisit.clientName}</h3>
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      selectedVisit.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                      selectedVisit.status === 'in_negotiation' ? 'bg-yellow-100 text-yellow-800' :
+                      selectedVisit.status === 'completed_purchase' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {selectedVisit.status === 'scheduled' ? 'Agendada' :
+                       selectedVisit.status === 'in_negotiation' ? 'Em Negociação' :
+                       selectedVisit.status === 'completed_purchase' ? 'Venda Realizada' :
+                       selectedVisit.status === 'completed_no_purchase' ? 'Sem Venda' :
+                       selectedVisit.status}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex items-center text-gray-600">
-                    <MapPin className="w-5 h-5 mr-2" />
-                    <span>{selectedVisit.location}</span>
+                  <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                    <div className="flex items-start text-gray-700">
+                      <Calendar className="w-5 h-5 mr-3 mt-0.5 text-blue-600 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-gray-900">Data e Hora</p>
+                        <p className="text-sm text-gray-600">
+                          {format(new Date(selectedVisit.scheduledDate), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                    <div className="flex items-start text-gray-700">
+                      <MapPin className="w-5 h-5 mr-3 mt-0.5 text-red-600 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-gray-900">Local</p>
+                        <p className="text-sm text-gray-600">{selectedVisit.location}</p>
+                      </div>
+                    </div>
                   </div>
 
                   {selectedVisit.notes && (
-                    <div className="text-gray-600">
-                      <strong>Observações:</strong> {selectedVisit.notes}
+                    <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                      <p className="font-medium text-amber-900 mb-2">Observações</p>
+                      <p className="text-sm text-amber-800">{selectedVisit.notes}</p>
                     </div>
                   )}
                 </div>
 
-                <div className="mt-6 bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-medium mb-2">Detalhes da Visita</h4>
-                  <p className="text-gray-600">
-                    Data: {format(new Date(selectedVisit.scheduledDate), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                  </p>
-                </div>
-
-                <div className="mt-6 flex justify-end">
+                <div className="mt-6 flex justify-end gap-2">
                   <button
                     onClick={() => setShowVisitDetails(false)}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                    className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 shadow-md"
                   >
                     Fechar
                   </button>

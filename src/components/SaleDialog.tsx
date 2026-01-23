@@ -25,6 +25,8 @@ export function SaleDialog({ open, onOpenChange }: SaleDialogProps) {
   const [paymentMethod, setPaymentMethod] = useState('money');
   const [installments, setInstallments] = useState('1');
   const [showNFeButton, setShowNFeButton] = useState(false);
+  const [discountType, setDiscountType] = useState<'value' | 'percentage'>('value');
+  const [discountValue, setDiscountValue] = useState('');
   
   const clients = useClientStore(state => state.clients);
   const products = useProductStore(state => state.products);
@@ -128,7 +130,7 @@ export function SaleDialog({ open, onOpenChange }: SaleDialogProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Valor Final</label>
+              <label className="block text-sm font-medium mb-1">Preço Original</label>
               <input
                 type="number"
                 value={finalPrice}
@@ -139,6 +141,70 @@ export function SaleDialog({ open, onOpenChange }: SaleDialogProps) {
                 required
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Tipo de Desconto</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDiscountType('value')}
+                  className={`px-4 py-2 rounded-md ${
+                    discountType === 'value'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Valor (R$)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDiscountType('percentage')}
+                  className={`px-4 py-2 rounded-md ${
+                    discountType === 'percentage'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Porcentagem (%)
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Desconto {discountType === 'percentage' ? '(%)' : '(R$)'}
+              </label>
+              <input
+                type="number"
+                value={discountValue}
+                onChange={(e) => setDiscountValue(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+                min="0"
+                step={discountType === 'percentage' ? '1' : '0.01'}
+                max={discountType === 'percentage' ? '100' : undefined}
+                placeholder={discountType === 'percentage' ? 'Ex: 10' : 'Ex: 50.00'}
+              />
+            </div>
+
+            {/* Display final price */}
+            {(finalPrice && discountValue) && (
+              <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-700">Valor com Desconto:</span>
+                  <span className="text-xl font-bold text-green-600">
+                    R$ {(() => {
+                      const price = parseFloat(finalPrice);
+                      const discount = parseFloat(discountValue);
+                      if (discountType === 'percentage') {
+                        return (price - (price * discount / 100)).toFixed(2);
+                      } else {
+                        return (price - discount).toFixed(2);
+                      }
+                    })()}
+                  </span>
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium mb-1">Descrição</label>

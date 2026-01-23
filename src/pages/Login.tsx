@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import FixedLogo from '../components/FixedLogo';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, HelpCircle } from 'lucide-react';
+import { X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 function Login() {
@@ -15,8 +15,6 @@ function Login() {
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'vendor'>('admin');
-  const [showInfoDialog, setShowInfoDialog] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
@@ -27,11 +25,17 @@ function Login() {
 
     try {
       const { user, error } = await signIn(email, password);
-      
+
       if (error) {
         setError(error.message);
       } else if (user) {
-        if (selectedRole === 'vendor') {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profileData?.role === 'vendor') {
           navigate('/vendor');
         } else {
           navigate('/admin');
@@ -103,16 +107,6 @@ function Login() {
           <div className="flex flex-col items-center mb-8">
             <FixedLogo />
             <p className="text-cyan-600 font-medium">Sistema Oficial</p>
-            
-            {/* Ícone de informações */}
-            <button
-              type="button"
-              onClick={() => setShowInfoDialog(true)}
-              className="mt-3 flex items-center text-sm text-cyan-600 hover:text-cyan-800 transition-colors"
-            >
-              <HelpCircle className="h-4 w-4 mr-1" />
-              Informações de Acesso
-            </button>
           </div>
 
           {error && (
@@ -153,22 +147,6 @@ function Login() {
               />
             </div>
 
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                Tipo de Acesso
-              </label>
-              <select
-                id="role"
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value as 'admin' | 'vendor')}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                disabled={isLoading}
-              >
-                <option value="admin">Administrativo</option>
-                <option value="vendor">Vendedor</option>
-              </select>
-            </div>
-
             <div className="flex items-center justify-between">
               <button
                 type="button"
@@ -193,67 +171,6 @@ function Login() {
           </form>
         </div>
       </div>
-
-      {/* Modal de Informações de Acesso */}
-      <Dialog.Root open={showInfoDialog} onOpenChange={setShowInfoDialog}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-black/50" />
-          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 w-[90vw] max-w-[500px]">
-            <Dialog.Title className="text-xl font-semibold mb-4 flex items-center">
-              <HelpCircle className="h-5 w-5 mr-2 text-cyan-600" />
-              Informações de Acesso
-            </Dialog.Title>
-
-            <div className="space-y-4">
-              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-blue-800 mb-3">💡 Como Acessar o Sistema:</h3>
-                
-                <div className="space-y-3">
-                  <div className="bg-white/70 rounded-lg p-3">
-                    <h4 className="font-medium text-blue-900 mb-2">👨‍💼 Administrador (Demonstração)</h4>
-                    <div className="text-sm text-blue-700">
-                      <p><strong>Email:</strong> hidromineralbrasil@gmail.com</p>
-                      <p><strong>Senha:</strong> Agua1050</p>
-                      <p><strong>Tipo:</strong> Administrativo</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-white/70 rounded-lg p-3">
-                    <h4 className="font-medium text-green-900 mb-2">🛍️ Vendedores</h4>
-                    <div className="text-sm text-green-700">
-                      <p><strong>Vendedores Reais:</strong> Use as credenciais criadas pelo administrador</p>
-                      <p><strong>Demo:</strong> vendor@example.com / vendor123</p>
-                      <p><strong>Tipo:</strong> Vendedor</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                  <h4 className="font-medium text-yellow-800 mb-2">⚠️ Importante</h4>
-                  <div className="text-xs text-yellow-700 space-y-1">
-                    <p>• Selecione o <strong>tipo de acesso correto</strong> antes de fazer login</p>
-                    <p>• Vendedores devem usar credenciais criadas pelo admin</p>
-                    <p>• Em caso de problemas, contate o administrador</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={() => setShowInfoDialog(false)}
-                className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors"
-              >
-                Entendi
-              </button>
-            </div>
-
-            <Dialog.Close className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-              <X size={20} />
-            </Dialog.Close>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
 
       <Dialog.Root open={showResetDialog} onOpenChange={setShowResetDialog}>
         <Dialog.Portal>

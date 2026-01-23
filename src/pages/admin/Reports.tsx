@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useClientStore } from '../../store/clients';
 import { useVendorStore } from '../../store/vendors';
 import { useProductStore } from '../../store/products';
 import { useVisitStore } from '../../store/visits';
+import { useSalesStore } from '../../store/sales';
 import { ArrowLeft, TrendingUp, Users, ShoppingBag, Calendar, Star } from 'lucide-react';
 import { formatCurrency } from '../../utils/currencyFormatter';
 
@@ -13,9 +14,15 @@ function Reports() {
   const vendors = useVendorStore(state => state.vendors);
   const products = useProductStore(state => state.products);
   const visits = useVisitStore(state => state.visits);
+  const { sales, getSales, getTotalRevenue } = useSalesStore();
 
-  const totalRevenue = clients.reduce((acc, client) => acc + client.totalValue, 0);
-  const averageTicket = totalRevenue / clients.length || 0;
+  useEffect(() => {
+    getSales();
+  }, [getSales]);
+
+  const totalRevenue = getTotalRevenue();
+  const completedSales = sales.filter(s => s.status === 'completed');
+  const averageTicket = completedSales.length > 0 ? totalRevenue / completedSales.length : 0;
 
   const performanceMetrics = [
     {
@@ -155,32 +162,67 @@ function Reports() {
             </div>
           </div>
 
-          {/* Premium Clients */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Clientes Premium</h2>
-            <div className="space-y-4">
-              {clients
-                .filter(client => client.isPremium)
-                .slice(0, 5)
-                .map((client) => (
-                  <div key={client.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center">
-                      <Star className="h-5 w-5 text-yellow-400 mr-3" />
-                      <div>
-                        <p className="font-medium text-gray-900">{client.name}</p>
-                        <p className="text-sm text-gray-500">{client.purchasedItem}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-gray-900">
-                        {formatCurrency(client.totalValue)}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Vencimento: {new Date(client.dueDate || '').toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+          {/* Sales History */}
+          <div className="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Histórico de Vendas Recentes</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Itens</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {completedSales.slice(0, 10).map((sale) => (
+                    <tr key={sale.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm text-gray-900">{sale.client.name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-500">
+                        {sale.items.map(item => item.name).join(', ').substring(0, 30)}
+                        {sale.items.map(item => item.name).join(', ').length > 30 && '...'}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-medium text-green-600">
+                        {formatCurrency(sale.total)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500">
+                        {new Date(sale.date).toLocaleDateString('pt-BR')}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                          Concluída
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {completedSales.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  Nenhuma venda realizada ainda
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Financial Summary */}
+        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Resumo Financeiro</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+              <p className="text-sm text-green-700 font-medium">Comissões Recebidas</p>
+              <p className="text-2xl font-bold text-green-800 mt-2">R$ 0,00</p>
+            </div>
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4">
+              <p className="text-sm text-orange-700 font-medium">Comissões Pendentes</p>
+              <p className="text-2xl font-bold text-orange-800 mt-2">R$ 0,00</p>
+            </div>
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+              <p className="text-sm text-blue-700 font-medium">Total de Vendas Realizadas</p>
+              <p className="text-2xl font-bold text-blue-800 mt-2">{completedSales.length}</p>
             </div>
           </div>
         </div>

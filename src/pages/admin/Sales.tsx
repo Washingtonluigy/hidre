@@ -348,15 +348,6 @@ function Sales() {
                         >
                           <Download className="h-5 w-5" />
                         </button>
-                        {sale.status === 'completed' && (
-                          <button
-                            onClick={() => handleCancelSale(sale.id)}
-                            className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50"
-                            title="Cancelar venda"
-                          >
-                            <Ban className="h-5 w-5" />
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>
@@ -502,18 +493,6 @@ function Sales() {
                       <Download className="h-4 w-4 mr-2" />
                       Baixar PDF
                     </button>
-                    {selectedSale.status === 'completed' && (
-                      <button
-                        onClick={() => {
-                          handleCancelSale(selectedSale.id);
-                          setShowSaleDetails(false);
-                        }}
-                        className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                      >
-                        <Ban className="h-4 w-4 mr-2" />
-                        Cancelar Venda
-                      </button>
-                    )}
                   </div>
                 </div>
               )}

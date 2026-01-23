@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LogoProvider } from './contexts/LogoContext';
+import { ToastProvider } from './contexts/ToastContext';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { isSupabaseConfigured } from './lib/supabase';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
@@ -86,9 +88,11 @@ VITE_SUPABASE_ANON_KEY=sua-chave-anon-aqui`}
 
   return (
     <Router>
-      <AuthProvider>
-        <LogoProvider>
-          <Routes>
+      <ToastProvider>
+        <AuthProvider>
+          <LogoProvider>
+            <PWAInstallPrompt />
+            <Routes>
             <Route path="/login" element={<Login />} />
             <Route
               path="/admin"
@@ -202,10 +206,11 @@ VITE_SUPABASE_ANON_KEY=sua-chave-anon-aqui`}
                 </ProtectedRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/login\" replace />} />
-          </Routes>
-        </LogoProvider>
-      </AuthProvider>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </LogoProvider>
+        </AuthProvider>
+      </ToastProvider>
     </Router>
   );
 }
