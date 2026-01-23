@@ -137,10 +137,19 @@ export function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) 
     e.preventDefault();
 
     console.log('=== INÍCIO DO SUBMIT ===');
+    console.log('Nome:', name);
+    console.log('Email:', email);
+    console.log('Phone:', phone);
     console.log('Profile completo:', profile);
     console.log('Profile ID:', profile?.id);
     console.log('Needs scheduling:', needsScheduling);
     console.log('Scheduled date:', scheduledDate);
+
+    // Validação básica
+    if (!name || name.trim() === '') {
+      alert('Por favor, preencha o nome do cliente.');
+      return;
+    }
 
     // Combine address fields
     const fullAddress = [

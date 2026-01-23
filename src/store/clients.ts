@@ -22,7 +22,7 @@ interface ClientStore {
   clients: Client[];
   loading: boolean;
   error: string | null;
-  addClient: (client: Omit<Client, 'id' | 'created_at'>) => Promise<void>;
+  addClient: (client: Omit<Client, 'id' | 'created_at'>) => Promise<string>;
   getClients: () => Promise<void>;
   updateClient: (id: string, client: Partial<Client>) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
@@ -77,6 +77,13 @@ export const useClientStore = create<ClientStore>()(
       addClient: async (client) => {
         set({ loading: true, error: null });
         try {
+          console.log('[ClientStore] Inserindo cliente:', {
+            name: client.name,
+            email: client.email,
+            phone: client.phone,
+            address: client.address
+          });
+
           const { data, error } = await supabase
             .from('customers')
             .insert([{
@@ -89,12 +96,18 @@ export const useClientStore = create<ClientStore>()(
             .single();
 
           if (error) {
-            console.error('Supabase insert error:', error);
+            console.error('[ClientStore] Erro do Supabase ao inserir:', error);
             if (error.code === '23505' && error.message.includes('email')) {
               throw new Error('Este email já está cadastrado no sistema');
             }
             throw new Error(`Erro ao salvar cliente: ${error.message}`);
           }
+
+          if (!data) {
+            throw new Error('Nenhum dado retornado após inserir cliente');
+          }
+
+          console.log('[ClientStore] Cliente inserido com sucesso:', data);
 
           const newClient: Client = {
             id: data.id,
@@ -116,9 +129,11 @@ export const useClientStore = create<ClientStore>()(
             clients: [newClient, ...state.clients],
             loading: false
           }));
+
+          console.log('[ClientStore] Estado atualizado. Retornando ID:', data.id);
           return data.id;
         } catch (error) {
-          console.error('Error adding client:', error);
+          console.error('[ClientStore] Erro completo ao adicionar cliente:', error);
           const errorMessage = error instanceof Error
             ? error.message
             : 'Erro ao adicionar cliente. Verifique sua conexão com o banco de dados.';
