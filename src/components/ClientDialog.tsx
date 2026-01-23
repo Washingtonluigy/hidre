@@ -136,6 +136,12 @@ export function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log('=== INÍCIO DO SUBMIT ===');
+    console.log('Profile completo:', profile);
+    console.log('Profile ID:', profile?.id);
+    console.log('Needs scheduling:', needsScheduling);
+    console.log('Scheduled date:', scheduledDate);
+
     // Combine address fields
     const fullAddress = [
       street,
@@ -157,15 +163,20 @@ export function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) 
 
     try {
       if (client) {
+        console.log('Atualizando cliente existente...');
         await updateClient(client.id, clientData);
 
         // Se está editando e há agendamento, criar/atualizar visita
         if (needsScheduling && scheduledDate) {
+          console.log('Verificando se pode criar visita...');
+
           if (!profile?.id) {
-            alert('Erro: Usuário não autenticado. Não foi possível agendar a visita.');
+            console.error('ERRO: Profile ID não encontrado!', profile);
+            alert('Erro: Usuário não autenticado. Não foi possível agendar a visita.\n\nPor favor, faça logout e login novamente.');
             return;
           }
 
+          console.log('✓ Profile ID encontrado:', profile.id);
           console.log('Criando visita ao editar cliente:', {
             clientName: name,
             clientId: client.id,
@@ -184,20 +195,28 @@ export function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) 
             location: fullAddress || 'Local a definir'
           });
 
-          console.log('Visita criada com sucesso!');
+          console.log('✓✓✓ Visita criada com sucesso!');
+          alert('Cliente atualizado e visita agendada com sucesso!\n\nA visita aparecerá no calendário em alguns segundos.');
+        } else {
+          alert('Cliente atualizado com sucesso!');
         }
       } else {
-        // Primeiro adiciona o cliente
+        console.log('Adicionando novo cliente...');
         const newClientId = await addClient(clientData);
+        console.log('Cliente criado com ID:', newClientId);
 
         // Se há agendamento, criar visita automaticamente
         if (needsScheduling && scheduledDate) {
+          console.log('Verificando se pode criar visita...');
+
           if (!profile?.id) {
-            alert('Erro: Usuário não autenticado. Cliente foi salvo, mas não foi possível agendar a visita.');
+            console.error('ERRO: Profile ID não encontrado!', profile);
+            alert('Erro: Usuário não autenticado.\n\nCliente foi salvo, mas não foi possível agendar a visita.\n\nPor favor, faça logout e login novamente.');
             onOpenChange(false);
             return;
           }
 
+          console.log('✓ Profile ID encontrado:', profile.id);
           console.log('Criando visita ao adicionar cliente:', {
             clientName: name,
             clientId: newClientId,
@@ -216,7 +235,10 @@ export function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) 
             location: fullAddress || 'Local a definir'
           });
 
-          console.log('Visita criada com sucesso!');
+          console.log('✓✓✓ Visita criada com sucesso!');
+          alert('Cliente cadastrado e visita agendada com sucesso!\n\nA visita aparecerá no calendário em alguns segundos.');
+        } else {
+          alert('Cliente cadastrado com sucesso!');
         }
       }
 
@@ -238,9 +260,9 @@ export function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) 
       setNeedsScheduling(false);
       setScheduledDate(null);
     } catch (error) {
-      console.error('Error saving client or visit:', error);
+      console.error('❌ ERRO COMPLETO:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro ao salvar';
-      alert(errorMessage);
+      alert(`ERRO: ${errorMessage}\n\nVerifique o console para mais detalhes.`);
     }
   };
 
